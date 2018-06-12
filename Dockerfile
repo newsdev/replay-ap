@@ -1,4 +1,4 @@
-FROM FROM python:3.6
+FROM python:3.6
 ENV CLOUD_SDK_VERSION 203.0.0
 
 # replace shell with bash so we can source files
