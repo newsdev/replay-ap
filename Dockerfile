@@ -4,7 +4,7 @@ ENV CLOUD_SDK_VERSION 203.0.0
 # replace shell with bash so we can source files
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
-RUN apt-get -qqy update && apt-get install -qqy \
+RUN apt-get -y update && apt-get install -y \
         curl \
         gcc \
         python-dev \
@@ -12,6 +12,7 @@ RUN apt-get -qqy update && apt-get install -qqy \
         apt-transport-https \
         lsb-release \
         openssh-client \
+        docker \
         git \
     && easy_install -U pip && \
     pip install -U crcmod   && \
@@ -32,8 +33,7 @@ RUN apt-get -qqy update && apt-get install -qqy \
     gcloud config set core/disable_usage_reporting true && \
     gcloud config set component_manager/disable_update_check true && \
     gcloud config set metrics/environment github_docker_image && \
-    gcloud --version && \
-    docker --version && kubectl version --client
+    gcloud --version
 
 VOLUME ["/root/.config"]
 
