@@ -1,12 +1,9 @@
-FROM docker:17.12.0-ce as static-docker-source
-
 FROM FROM python:3.6
 ENV CLOUD_SDK_VERSION 203.0.0
 
 # replace shell with bash so we can source files
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
-COPY --from=static-docker-source /usr/local/bin/docker /usr/local/bin/docker
 RUN apt-get -qqy update && apt-get install -qqy \
         curl \
         gcc \
