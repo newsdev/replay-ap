@@ -15,7 +15,7 @@
 </style>
 <div class="row">
     <div class="col-md-12">
-        <p style="font-size: 24px;"><strong>AP Deja-Vu</strong> is an engine for replaying AP election tests. To use <strong>AP Deja-Vu</strong> with your <a href="https://github.com/newsdev/elex-loader">election loader</a> instance, export this environment variable to point your loader away from the AP and toward Deja-Vu.</p>
+        <p style="font-size: 24px;"><strong>Replay AP</strong> is an engine for replaying AP election tests. To use <strong>Replay AP</strong> with your <a href="https://github.com/newsdev/election-2018">election app</a>, export this environment variable to point your loader away from the AP and toward Deja-Vu.</p>
         <p>
             <pre>
 
@@ -26,7 +26,47 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <h1>Available election tests</h1>
+        <h1>Upcoming elections</h1>
+        <table class="table">
+        <tr>
+            <th>Election date</th>
+            <th>Status</th>
+            <th>Position</th>
+            <th>Playback speed</th>
+            <th>Error mode</th>
+        </tr>
+        {% for e in current %}
+        <tr id="election-{{ e.racedate }}">
+            <td class="col-md-2"><a href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a></td>
+            <td class="status">
+                {% if e.status == False %}
+                <a class="startstop btn btn-default btn-sm" data-command="start">Start recording</a>
+                {% else %}
+                <a class="startstop btn btn-warning btn-sm" data-command="stop">Stop recording</a>
+                {% endif %}
+            </td>
+            <td class="position">
+                <strong>{{ e.position }}</strong>&nbsp;/&nbsp;{{ e.total_positions }}&nbsp;
+                <a class="ajax" id="position-zero" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+            </td>
+            <td class="playback">
+                <strong>{{ e.playback }}</strong>&nbsp;
+                <a class="ajax" id="playback-up" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
+                <a class="ajax" id="playback-down" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
+                <a class="ajax" id="playback-one" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+            </td>
+            <td class="errormode">
+                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
+                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">403</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h1>Old elections</h1>
         <table class="table">
         <tr>
             <th>Election date</th>
@@ -34,25 +74,26 @@
             <th>Playback speed</th>
             <th>Error mode</th>
         </tr>
-        {% for e in elections %}
-        <tr id="election-{{ e.election_date }}">
-            <td class="col-md-2"><a href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">{{ e.title }}</a></td>
+        {% for e in past %}
+        <tr id="election-{{ e.racedate }}">
+            <td class="col-md-2"><a href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a></td>
             <td class="position">
                 <strong>{{ e.position }}</strong>&nbsp;/&nbsp;{{ e.total_positions }}&nbsp;
-                <a class="ajax" id="position-zero" href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+                <a class="ajax" id="position-zero" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
             </td>
             <td class="playback">
                 <strong>{{ e.playback }}</strong>&nbsp;
-                <a class="ajax" id="playback-up" href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
-                <a class="ajax" id="playback-down" href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
-                <a class="ajax" id="playback-one" href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+                <a class="ajax" id="playback-up" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
+                <a class="ajax" id="playback-down" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
+                <a class="ajax" id="playback-one" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
             </td>
             <td class="errormode">
-                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
-                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="/elections/{{ e.election_date }}?national={{ e.national|lower }}&level=ru">403</a>
+                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
+                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">403</a>
             </td>
         </tr>
         {% endfor %}
+        </table>
     </div>
 </div>
 {% endblock %}
@@ -60,6 +101,21 @@
 {% block extrajs %}
 <script type="text/javascript">
     $(function(){
+        var recording_click_handler = function(el){
+            el.preventDefault();
+            $el = $(this);
+            var RACEDATE = $el.parent('td').parent('tr').attr('id').split('election-')[1];
+            var ACTION = $el.attr('data-command');
+            console.log('/recording/' + RACEDATE + '/' + ACTION + '/');
+            $.ajax({
+                type: "GET",
+                url: '/recording/' + RACEDATE + '/' + ACTION + '/',
+                success: function(response){
+                    window.location.reload();
+                }
+            });            
+        }
+
         var ajax_url = function(racedate, action, param_name, direction, url){
             var params = {}
             params[param_name] = parseInt($($('#' + racedate + ' .' + action + ' strong')[0]).text());
@@ -122,6 +178,7 @@
 
         $('a.ajax').on('click', ajax_click_handler);
         $('a.ajax-toggle').on('click', ajax_toggle_handler);
+        $('a.startstop').on('click', recording_click_handler);
     });
 </script>
 {% endblock %}

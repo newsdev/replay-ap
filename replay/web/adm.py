@@ -33,34 +33,89 @@ r_conn = redis.StrictRedis(
 app = Flask(__name__)
 
 def is_elec(e, file_path):
-    file_path = file_path.split('/national/')[1]
-    if e in file_path:
-        return True
+    try:
+        file_path = file_path.split('/national/')[1]
+        if e in file_path:
+            return True
+    except:
+        pass
     return False
+
+@app.route('/recording/<racedate>/<action>/')
+def recording(racedate, action):
+    message = "Something bad happened that didn't trigger either start/stop action."
+    success = False
+
+    if action == "start":
+        active, err = utils.get_active_recordings()
+        matching_active_recordings = []
+        for a in active:
+            if "record-ap-%s" % racedate == a['name']:
+                have_active_recording = True
+                matching_active_recordings.append(a['name'])
+
+        if len(matching_active_recordings) > 0:
+            for r in matching_active_recordings:
+                # already running
+                message = "[PM2][ERROR] Process %s already running" % r
+        else:
+            ##
+            ## Actual recording abstracted out
+            ##
+            out, err = utils.start_recording(racedate)
+
+            if err:
+                # error starting the recording
+                message = err.decode('utf-8').replace('\n')
+            else:
+                # success!
+                message = "[PM2][INFO] Process replay-ap-%s started" % racedate
+                success = True
+    
+    if action == "stop":
+        ##
+        ## Actual stop process abstracted out
+        ##
+        out,err = utils.stop_recording(racedate)
+
+        if err:
+            # error stopping the recording.
+            message = err.decode("utf-8").replace('\n','')
+        else:
+            # success!
+            message = "[PM2][INFO] Process record-ap-%s stopped" % racedate
+            success = True
+
+    print(message)
+    return json.dumps({"success": success, "message": message})
 
 @app.route('/')
 def index():
-    """
-    Will match directories named like the following:
-    2015-09-10
-    09-10-2015
-    """
     bucket = utils.get_bucket()
-    recordings = utils.get_recordings(bucket)
 
-    elections = sorted(list(set([b.public_url.split(BASE_DIR)[1].split('/national')[0] for b in recordings])), key=lambda x:x)
+    completed_recordings = utils.get_completed_recordings(bucket)
+    elections = utils.get_racedates(bucket)
+    active_recordings, err = utils.get_active_recordings()
+
+    if len(active_recordings) > 0:
+        active_recordings = [a['name'] for a in active_recordings]
 
     context = utils.build_context()
-    context['elections'] = []
-    context['year'] = 2018
+
+    context['past'] = []
+    context['current'] = []
+    context['future'] = []
 
     for e in elections:
         for level in ['national']:
-            positions = [b.public_url.split(BASE_DIR)[1] for b in recordings if is_elec(e, b.public_url.split(BASE_DIR)[1])]
+            positions = [b.public_url.split(BASE_DIR)[1] for b in completed_recordings if is_elec(e, b.public_url.split(BASE_DIR)[1])]
             national = True
             e_dict = {}
             election_key = 'REPLAY_AP_%s' % e
-            e_dict['election_date'] = e
+            e_dict['status'] = False
+            if "record-ap-%s" % e in active_recordings:
+                e_dict['status'] = True
+            e_dict['racedate'] = e
             e_dict['national'] = national
             e_dict['level'] = level
             e_dict['title'] = "%s [%s]" % (e, level)
@@ -69,14 +124,25 @@ def index():
             e_dict['playback'] = int(r_conn.get(election_key + '_PLAYBACK') or 1)
             e_dict['errormode'] = utils.to_bool(r_conn.get(election_key + '_ERRORMODE'))
             e_dict['ratelimited'] = utils.to_bool(r_conn.get(election_key + '_RATELIMITED'))
-            context['elections'].append(e_dict)
+
+            if utils.is_current(e):
+                context['current'].append(e_dict)
+
+            elif utils.is_future(e):
+                context['future'].append(e_dict)
+
+            else:
+                context['past'].append(e_dict)
+
+    context['past'] = sorted(context['past'], key=lambda x:x['racedate'], reverse=True)
+
     return render_template('index.html', **context)
 
-@app.route('/elections/<election_date>')
-def replay(election_date):
+@app.route('/elections/<racedate>')
+def replay(racedate):
     """
-    The route `/<election_date>` will replay the election files found in the folder
-    `/<DATA_DIR>/<election_date>/`. The files should be named such that the first file
+    The route `/<racedate>` will replay the election files found in the folder
+    `/<DATA_DIR>/<racedate>/`. The files should be named such that the first file
     will be sorted first in a list by `glob.glob()`, e.g., a higher letter (a) or lower
     number (0). Incrementing UNIX timestamps (such as those captured by Elex) would be
     ideal.
@@ -95,23 +161,23 @@ def replay(election_date):
     app is restarted OR a new pair of control parameters are passed.
 
     Example: Let's say you would like to test an election at 10x speed. You have 109
-    files in your `/<DATA_DIR>/<election_date>/` folder named 001.json through 109.json
+    files in your `/<DATA_DIR>/<racedate>/` folder named 001.json through 109.json
 
-    * Request 1: `/<election_date>?position=0&playback=10` > 001.json
-    * Request 2: `/<election_date>` > 011.json
-    * Request 3: `/<election_date>` > 021.json
-    * Request 4: `/<election_date>` > 031.json
-    * Request 5: `/<election_date>` > 041.json
-    * Request 6: `/<election_date>` > 051.json
-    * Request 7: `/<election_date>` > 061.json
-    * Request 8: `/<election_date>` > 071.json
-    * Request 9: `/<election_date>` > 081.json
-    * Request 10: `/<election_date>` > 091.json
-    * Request 11: `/<election_date>` > 101.json
-    * Request 12: `/<election_date>` > 109.json
-    * Request 13 - ???: `/<election_date>` > 109.json
+    * Request 1: `/<racedate>?position=0&playback=10` > 001.json
+    * Request 2: `/<racedate>` > 011.json
+    * Request 3: `/<racedate>` > 021.json
+    * Request 4: `/<racedate>` > 031.json
+    * Request 5: `/<racedate>` > 041.json
+    * Request 6: `/<racedate>` > 051.json
+    * Request 7: `/<racedate>` > 061.json
+    * Request 8: `/<racedate>` > 071.json
+    * Request 9: `/<racedate>` > 081.json
+    * Request 10: `/<racedate>` > 091.json
+    * Request 11: `/<racedate>` > 101.json
+    * Request 12: `/<racedate>` > 109.json
+    * Request 13 - ???: `/<racedate>` > 109.json
 
-    Requesting /<election_date>?position=0&playback=1 will reset to the default position
+    Requesting /<racedate>?position=0&playback=1 will reset to the default position
     and playback speeds, respectively.
     """
 
@@ -120,6 +186,9 @@ def replay(election_date):
         if request.args['national'].lower() == 'false':
             LEVEL = 'local'
 
+    ## UGH I AM GONNA HAVE TO REIMPLEMENT THIS IN NOVEMBER.
+    ## UGH UGH UGH UGH
+    #
     # if request.args.get('national', None) and request.args.get('level', None):
     #     LEVEL = 'local'
     #     if request.args['national'].lower() == 'true':
@@ -132,14 +201,14 @@ def replay(election_date):
     #         'message': 'must specify national=true or national=false and level=ru or level=district'
     #     })
 
-    election_key = 'REPLAY_AP_%s' % election_date
+    election_key = 'REPLAY_AP_%s' % racedate
 
     bucket = utils.get_bucket()
-    recordings = utils.get_recordings(bucket)
+    completed_recordings = utils.get_completed_recordings(bucket)
 
     sd = datetime.datetime.now() + datetime.timedelta(0, 60)
 
-    hopper = sorted([(b.public_url, b) for b in recordings if is_elec(election_date, b.public_url.split(BASE_DIR)[1])], key=lambda x:x[0])
+    hopper = sorted([(b.public_url, b) for b in completed_recordings if is_elec(racedate, b.public_url.split(BASE_DIR)[1])], key=lambda x:x[0])
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)

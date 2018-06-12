@@ -1,2 +1,3 @@
-Flask==1.0.2
-google-cloud-storage==1.10.0
+Flask
+google-cloud-storage
+google-api-python-client
