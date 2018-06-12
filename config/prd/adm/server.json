@@ -1,0 +1,6 @@
+{
+    "name": "replay-python-web-server",
+    "label": "Replay: Python Web Server",
+    "script": "/usr/local/bin/uwsgi --ini /usr/src/app/config/prd/adm/docker.ini",
+    "log_file": "/tmp/replay-ap.pub.adm.uwsgi.log"
+}

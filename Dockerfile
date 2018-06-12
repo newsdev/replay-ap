@@ -58,12 +58,15 @@ ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 # confirm installation
 RUN node -v
 
-RUN npm install -g pm2
+RUN npm install pm2 -g
 
 RUN pip install uwsgi
+RUN touch /tmp/replay-ap.pub.adm.uwsgi.log
 
 COPY ap-replay/requirements.txt /usr/src/app/
 RUN pip install -r /usr/src/app/requirements.txt
 COPY ap-replay/ /usr/src/app/
 
-EXPOSE 80
+EXPOSE 8000
+
+CMD ["pm2", 'start', '/usr/src/app/config/prd/adm/server.json']
