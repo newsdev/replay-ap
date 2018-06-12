@@ -63,9 +63,9 @@ RUN npm install pm2 -g
 RUN pip install uwsgi
 RUN touch /tmp/replay-ap.pub.adm.uwsgi.log
 
-COPY replay-ap/requirements.txt /usr/src/app/
+COPY requirements.txt /usr/src/app/
 RUN pip install -r /usr/src/app/requirements.txt
-COPY replay-ap/ /usr/src/app/
+COPY . /usr/src/app/
 
 EXPOSE 8000
 
