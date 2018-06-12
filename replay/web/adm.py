@@ -41,6 +41,10 @@ def is_elec(e, file_path):
         pass
     return False
 
+@app.route('/healthcheck')
+def healthcheck():
+    return "200 ok"
+
 @app.route('/recording/<racedate>/<action>/')
 def recording(racedate, action):
     message = "Something bad happened that didn't trigger either start/stop action."
