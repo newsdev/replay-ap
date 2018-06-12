@@ -69,4 +69,4 @@ COPY . /usr/src/app/
 
 EXPOSE 8000
 
-CMD ["pm2", 'start', '/usr/src/app/config/prd/adm/server.json']
+CMD ["pm2", "start", "/usr/src/app/config/prd/adm/server.json"]
