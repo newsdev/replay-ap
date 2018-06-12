@@ -67,6 +67,6 @@ COPY requirements.txt /usr/src/app/
 RUN pip install -r /usr/src/app/requirements.txt
 COPY . /usr/src/app/
 
-EXPOSE 8000
+CMD ["pm2-runtime", "--json", "/usr/src/app/config/prd/adm/server.json"]
 
-CMD ["pm2", "start", "/usr/src/app/config/prd/adm/server.json"]
+EXPOSE 8000
