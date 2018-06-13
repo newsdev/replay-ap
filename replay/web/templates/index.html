@@ -38,7 +38,7 @@
         {% for e in current %}
         <tr id="election-{{ e.racedate }}">
             <td class="col-md-2">
-                <a href="{{ PUB_URL }}/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
+                <a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
                 <a target="_blank" style="color: #888;font-size:11px;" href="https://console.cloud.google.com/storage/browser/{{ STORAGE_BUCKET }}/apps/replay-ap/{{ e.racedate }}/national?project=nytint-prd"><em>see files &raquo;</em></a>
             </td>
             <td class="status">
@@ -80,7 +80,7 @@
         {% for e in past %}
         <tr id="election-{{ e.racedate }}">
             <td class="col-md-2">
-                <a href="{{ PUB_URL }}/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
+                <a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
                 <a target="_blank" style="color: #888;font-size:11px;" href="https://console.cloud.google.com/storage/browser/int.nyt.com/apps/replay-ap/{{ e.racedate }}/national?project=nytint-prd"><em>see files &raquo;</em></a>
             </td>
             <td class="position">
