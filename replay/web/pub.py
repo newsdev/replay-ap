@@ -31,7 +31,7 @@ def health():
 
 @app.route('/', methods=['GET'])
 def index():
-    return redirect(settings.ADMIN_URL)
+    return redirect(settings.ADM_URL)
 
 @app.route('/elections/<racedate>')
 def replay(racedate):
