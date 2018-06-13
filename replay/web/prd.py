@@ -1,28 +1,18 @@
 import argparse
 import datetime
 import glob
+import importlib
 import json
 import os
 import random
 import re
 
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, Response, redirect
 from google.cloud import storage
 import redis
 import requests
 
 from replay import utils
-
-BASE_DIR = os.environ.get('REPLAY_AP_BASE_DIR', 'replay-ap/')
-RATELIMITED_HEADERS = {"Connection": "keep-alive","Content-Length": 199,"Content-Type": "text/xml","Date": "Fri, 29 Jan 2017 16:54:17 GMT","Server": "Apigee Router"}
-ERRORMODE_HEADERS = {"Connection": "keep-alive","Content-Type": "text/json","Date": "Fri, 29 Jan 2017 16:54:17 GMT","Server": "Apigee Router"}
-RATELIMITED_STRING = """
-<Error xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-<Code>403</Code>
-<Message>Over quota limit.</Message>
-<link href="https://developer.ap.org/api-console" rel="help"/>
-</Error>
-"""
 
 r_conn = redis.StrictRedis(
     host=os.environ.get('REPLAY_AP_REDIS_HOST', 'localhost'),
@@ -31,20 +21,17 @@ r_conn = redis.StrictRedis(
     password = os.environ.get('REPLAY_AP_REDIS_PASS', '')
 )
 
+settings = importlib.import_module('config.%s.settings' % os.environ.get('DEPLOYMENT_ENVIRONMENT', 'dev'))
+
 app = Flask(__name__)
 
-def is_elec(e, file_path):
-    try:
-        file_path = file_path.split('/national/')[1]
-        if e in file_path:
-            return True
-    except:
-        pass
-    return False
+@app.route('/healthcheck', methods=['GET'])
+def health():
+    return Response('ok')
 
-@app.route('/healthcheck')
-def healthcheck():
-    return "200 ok"
+@app.route('/', methods=['GET'])
+def index():
+    return redirect(settings.ADMIN_URL)
 
 @app.route('/elections/<racedate>')
 def replay(racedate):
@@ -69,7 +56,7 @@ def replay(racedate):
     app is restarted OR a new pair of control parameters are passed.
 
     Example: Let's say you would like to test an election at 10x speed. You have 109
-    files in your `/<DATA_DIR>/<racedate>/` folder named 001.json through 109.json
+    files in your `<storage_bucket>/apps/replay-ap/<racedate>/national/` folder named 001.json through 109.json
 
     * Request 1: `/<racedate>?position=0&playback=10` > 001.json
     * Request 2: `/<racedate>` > 011.json
@@ -113,10 +100,12 @@ def replay(racedate):
 
     bucket = utils.get_bucket()
     completed_recordings = utils.get_completed_recordings(bucket)
+    if len(completed_recordings) == 0:
+        return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
 
     sd = datetime.datetime.now() + datetime.timedelta(0, 60)
 
-    hopper = sorted([(b.public_url, b) for b in completed_recordings if is_elec(racedate, b.public_url.split(BASE_DIR)[1])], key=lambda x:x[0])
+    hopper = sorted([(b.public_url, b) for b in completed_recordings if utils.is_elec(racedate, b.public_url.split(settings.BASE_DIR)[1])], key=lambda x:x[0])        
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)
@@ -168,10 +157,10 @@ def replay(racedate):
         return json.dumps({"success": True})
     else:
         if ratelimited:
-            return make_response((RATELIMITED_STRING, 403, RATELIMITED_HEADERS))
+            return make_response((RATELIMITED_STRING, 403, settings.RATELIMITED_HEADERS))
 
         if errormode:
-            return make_response(json.dumps({"status": 500, "error": True}), 500, ERRORMODE_HEADERS)
+            return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
 
     if position + playback < (len(hopper) - 1):
         """
@@ -193,4 +182,4 @@ def replay(racedate):
     return payload
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host=settings.HOST, port=settings.PUB_PORT, debug=settings.DEBUG)

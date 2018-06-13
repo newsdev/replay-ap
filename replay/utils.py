@@ -1,4 +1,5 @@
 import datetime
+import importlib
 import json
 import os
 import subprocess
@@ -7,14 +8,16 @@ from google.cloud import storage
 from google.oauth2 import service_account
 import googleapiclient.discovery
 
-
-BASE_DIR = os.environ.get('REPLAY_AP_BASE_DIR', 'replay-ap/')
+settings = importlib.import_module('config.%s.settings' % os.environ.get('DEPLOYMENT_ENVIRONMENT', 'dev'))
 
 def build_context():
     """
     Every page needs these two things.
     """
     context = {}
+    context['ADM_URL'] = settings.ADM_URL
+    context['PUB_URL'] = settings.PUB_URL
+    context['STORAGE_BUCKET'] = settings.STORAGE_BUCKET
     return dict(context)
 
 def to_bool(v):
@@ -24,14 +27,14 @@ def to_bool(v):
 
 def get_bucket():
     client = storage.Client()
-    return client.get_bucket(os.environ.get('REPLAY_AP_BUCKET', 'int.nyt.com'))
+    return client.get_bucket(settings.STORAGE_BUCKET)
 
 def get_completed_recordings(bucket):
-    return [b for b in bucket.list_blobs(prefix="apps/%s" % BASE_DIR) if "__placeholder__" not in b.public_url]
+    return [b for b in bucket.list_blobs(prefix="apps/%s" % settings.BASE_DIR) if "__placeholder__" not in b.public_url]
 
 def get_racedates(bucket):
-    recordings = [b for b in bucket.list_blobs(prefix="apps/%s" % BASE_DIR) if "__placeholder__" in b.public_url]
-    return sorted(list(set([b.public_url.split(BASE_DIR)[1].split('/national')[0].replace('/', '') for b in recordings])), key=lambda x:x)
+    recordings = [b for b in bucket.list_blobs(prefix="apps/%s" % settings.BASE_DIR) if "__placeholder__" in b.public_url]
+    return sorted(list(set([b.public_url.split(settings.BASE_DIR)[1].split('/national')[0].replace('/', '') for b in recordings])), key=lambda x:x)
 
 def stop_recording(racedate):
     process = subprocess.Popen([
@@ -68,16 +71,12 @@ def get_calendar():
     the service account must have Viewer permissions
     and be invited as a read-only member of the sheet.
     """
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    SERVICE_ACCOUNT_FILE = os.environ.get('REPLAY_AP_CREDS', 'credentials.json')
-    credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    credentials = service_account.Credentials.from_service_account_file(settings.SERVICE_ACCOUNT_FILE, scopes=settings.SCOPES)
     service = googleapiclient.discovery.build('sheets', 'v4', credentials=credentials)
-    SHEETID = os.environ.get('REPLAY_AP_CALENDAR_SHEETID', '')
-    RANGE = os.environ.get('REPLAY_AP_CALENDAR_RANGE', '')
     result = service\
                 .spreadsheets()\
                 .values()\
-                .get(spreadsheetId=SHEETID,range=RANGE)\
+                .get(spreadsheetId=settings.SHEETID,range=settings.RANGE)\
                 .execute()
     values = result.get('values', [])
 
@@ -122,4 +121,13 @@ def is_future(racedate):
 
     if racedate > future:
         return True
+    return False
+
+def is_elec(e, file_path):
+    try:
+        file_path = file_path.split('/national/')[1]
+        if e in file_path:
+            return True
+    except:
+        pass
     return False

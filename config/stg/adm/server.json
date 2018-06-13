@@ -1,0 +1,6 @@
+{
+    "name": "replay-python-web-server",
+    "label": "Replay: Python Web Server",
+    "script": "/usr/src/app/config/prd/adm/app.sh",
+    "log_file": "/tmp/replay-ap.prd.adm.uwsgi.log"
+}
