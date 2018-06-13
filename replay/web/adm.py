@@ -48,7 +48,7 @@ def index():
 
     for e in elections:
         for level in ['national']:
-            positions = [b.public_url.split(BASE_DIR)[1] for b in completed_recordings if utils.is_elec(e, b.public_url.split(BASE_DIR)[1])]
+            positions = [b.public_url.split(settings.BASE_DIR)[1] for b in completed_recordings if utils.is_elec(e, b.public_url.split(settings.BASE_DIR)[1])]
             national = True
             e_dict = {}
             election_key = 'REPLAY_AP_%s' % e
