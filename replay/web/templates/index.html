@@ -19,7 +19,7 @@
         <p>
             <pre>
 
-                <code>export AP_API_BASE_URL="https://replay-ap.newsdev.nyt.net/elections/"</code>
+                <code>export AP_API_BASE_URL="https://replay-ap.newsdev.nytimes.com/elections/"</code>
             </pre>
         </p>
     </div>
@@ -38,7 +38,7 @@
         {% for e in current %}
         <tr id="election-{{ e.racedate }}">
             <td class="col-md-2">
-                <a href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
+                <a href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
                 <a target="_blank" style="color: #888;font-size:11px;" href="https://console.cloud.google.com/storage/browser/int.nyt.com/apps/replay-ap/{{ e.racedate }}/national?project=nytint-prd"><em>see files &raquo;</em></a>
             </td>
             <td class="status">
@@ -50,17 +50,17 @@
             </td>
             <td class="position">
                 <strong>{{ e.position }}</strong>&nbsp;/&nbsp;{{ e.total_positions }}&nbsp;
-                <a class="ajax" id="position-zero" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+                <a class="ajax" id="position-zero" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
             </td>
             <td class="playback">
                 <strong>{{ e.playback }}</strong>&nbsp;
-                <a class="ajax" id="playback-up" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
-                <a class="ajax" id="playback-down" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
-                <a class="ajax" id="playback-one" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+                <a class="ajax" id="playback-up" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
+                <a class="ajax" id="playback-down" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
+                <a class="ajax" id="playback-one" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
             </td>
             <td class="errormode">
-                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
-                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">403</a>
+                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
+                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">403</a>
             </td>
         </tr>
         {% endfor %}
@@ -80,22 +80,22 @@
         {% for e in past %}
         <tr id="election-{{ e.racedate }}">
             <td class="col-md-2">
-                <a href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
+                <a href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
                 <a target="_blank" style="color: #888;font-size:11px;" href="https://console.cloud.google.com/storage/browser/int.nyt.com/apps/replay-ap/{{ e.racedate }}/national?project=nytint-prd"><em>see files &raquo;</em></a>
             </td>
             <td class="position">
                 <strong>{{ e.position }}</strong>&nbsp;/&nbsp;{{ e.total_positions }}&nbsp;
-                <a class="ajax" id="position-zero" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+                <a class="ajax" id="position-zero" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
             </td>
             <td class="playback">
                 <strong>{{ e.playback }}</strong>&nbsp;
-                <a class="ajax" id="playback-up" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
-                <a class="ajax" id="playback-down" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
-                <a class="ajax" id="playback-one" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
+                <a class="ajax" id="playback-up" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&uarr;</a>&nbsp;
+                <a class="ajax" id="playback-down" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&darr;</a>&nbsp;
+                <a class="ajax" id="playback-one" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>
             </td>
             <td class="errormode">
-                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
-                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">403</a>
+                <a class="{% if e.errormode %}{% else %}mode-off {% endif %}ajax-toggle" id="errormode" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">500</a>&nbsp;&nbsp;
+                <a class="{% if e.ratelimited %}{% else %}mode-off {% endif %}ajax-toggle" id="ratelimited" href="https://replay-ap.newsdev.nytimes.com/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">403</a>
             </td>
         </tr>
         {% endfor %}
