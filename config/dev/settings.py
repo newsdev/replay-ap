@@ -7,8 +7,8 @@ DEBUG = False
 HOST = '0.0.0.0'
 ADM_PORT = 8000
 PUB_PORT = 8001
-PUB_URL = 'localhost.newsdev.net:%s' % PUB_PORT
-ADM_URL = 'localhost.newsdev.net:%s' % ADM_PORT
+PUB_URL = 'http://localhost.newsdev.net:%s' % PUB_PORT
+ADM_URL = 'http://localhost.newsdev.net:%s' % ADM_PORT
 
 
 ##
