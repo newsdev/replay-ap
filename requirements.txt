@@ -1,3 +1,5 @@
 Flask
 google-cloud-storage
 google-api-python-client
+redis
+hiredis
