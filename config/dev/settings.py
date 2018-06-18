@@ -1,5 +1,7 @@
 import os
 
+import redis
+
 ##
 ## Basic app settings
 ##
@@ -38,3 +40,12 @@ SERVICE_ACCOUNT_FILE = os.environ.get('REPLAY_AP_CREDS', 'credentials.json')
 SHEETID = os.environ.get('REPLAY_AP_CALENDAR_SHEETID', '')
 RANGE = os.environ.get('REPLAY_AP_CALENDAR_RANGE', '')
 
+##
+## REDIS
+##
+REDIS_CONNECTION = redis.StrictRedis(
+    host=os.environ.get('REPLAY_AP_REDIS_HOST', 'localhost'),
+    port=int(os.environ.get('REPLAY_AP_REDIS_PORT', 6379)), 
+    db=int(os.environ.get('REPLAY_AP_REDIS_DB', 0)),
+    password = os.environ.get('REPLAY_AP_REDIS_PASS', '')
+)
