@@ -33,10 +33,10 @@ def get_bucket():
     return client.get_bucket(settings.STORAGE_BUCKET)
 
 def get_completed_recordings(bucket):
-    return [b for b in bucket.list_blobs(prefix="apps/%s" % settings.BASE_DIR) if "__placeholder__" not in b.public_url]
+    return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url]
 
 def get_racedates(bucket):
-    recordings = [b for b in bucket.list_blobs(prefix="apps/%s" % settings.BASE_DIR) if "__placeholder__" in b.public_url]
+    recordings = [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" in b.public_url]
     return sorted(list(set([b.public_url.split(settings.BASE_DIR)[1].split('/national')[0].replace('/', '') for b in recordings])), key=lambda x:x)
 
 def stop_recording(racedate):
@@ -48,11 +48,13 @@ def stop_recording(racedate):
     return out,err
 
 def start_recording(racedate):
+    env = os.environ.copy()
+    env['REPLAY_AP_BASE_PATH'] = "%s/%s/national" % (settings.BASE_DIR, racedate)
     process = subprocess.Popen([
         "pm2", "start", 
         "replay/record.sh", "--name", "record-ap-%s" % racedate, 
-        "--", "%s" % racedate
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        "--", "%s" % racedate,
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     out,err = process.communicate()
     return out,err
 

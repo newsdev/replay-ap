@@ -29,8 +29,8 @@ RATELIMITED_STRING = """
 ##
 ## Bucket auth for persisting recorded files and reading files.
 ##
-STORAGE_BUCKET = os.environ.get('REPLAY_AP_BUCKET', 'int.stg.nyt.com')
-BASE_DIR = os.environ.get('REPLAY_AP_BASE_DIR', 'replay-ap/')
+STORAGE_BUCKET = os.environ.get('REPLAY_AP_BUCKET', 'int.nyt.com')
+BASE_DIR = os.environ.get('REPLAY_AP_BASE_DIR', 'apps/replay-ap')
 
 ##
 ## Spreadsheet credentials for reading from google sheet for calendar.

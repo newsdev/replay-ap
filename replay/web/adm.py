@@ -119,6 +119,45 @@ def recording(racedate, action):
 
     return utils.make_ap_response(json.dumps({"success": success, "message": message}))
 
+@app.route('/elections/<racedate>/status')
+def status(racedate):
+    """
+    The route /<racedate>/status will return the status of a given
+    election date test, including the current position in the hopper, the
+    playback speed, and the path of the file that will be served at the current
+    position.
+    """
+
+    LEVEL = 'national'
+    if request.args.get('national', None):
+        if request.args['national'].lower() == 'false':
+            LEVEL = 'local'
+
+    election_key = 'REPLAY_AP_%s' % racedate
+
+    bucket = utils.get_bucket()
+    completed_recordings = utils.get_completed_recordings(bucket)
+    if len(completed_recordings) == 0:
+        return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
+
+    sd = datetime.datetime.now() + datetime.timedelta(0, 60)
+
+    hopper = sorted([(b.public_url, b) for b in completed_recordings if utils.is_elec(racedate, b.public_url.split(settings.BASE_DIR)[1])], key=lambda x:x[0])        
+
+    position = int(r_conn.get(election_key + '_POSITION') or 0)
+    playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)
+    errormode = utils.to_bool(r_conn.get(election_key + '_ERRORMODE'))
+    ratelimited = utils.to_bool(r_conn.get(election_key + '_RATELIMITED'))
+
+    return json.dumps({
+                'playback': playback,
+                'position': position,
+                'errormode': errormode,
+                'ratelimited': ratelimited,
+                'file': hopper[position-1][0],
+                'level': LEVEL
+            })
+
 @app.route('/elections/<racedate>')
 def replay(racedate):
     return utils.get_replay_file(racedate)
