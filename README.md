@@ -1,12 +1,7 @@
 # REPLAY-AP
 [That strange feeling we sometimes get that we've lived through something before.](https://www.youtube.com/watch?v=G2eUopy9sd8)
 
-`replay-ap` is a small web service that will replay JSON from an AP election test. `replay-ap` does not require a database for persistence and does not write to the filesystem.
-
-## Important Notes
-* `replay-ap` requires that you have **already recorded** an AP election test to JSON files. [Elex-loader](https://github.com/newsdev/elex-loader/) is highly recommended for this process. Contact your AP support representative to get an up-to-date schedule for election tests.
-
-* This software assumes you have two AP API keys; one for national data, and one for local data.
+`replay-ap` is a small web service that will record and replay JSON from an AP election test. `replay-ap` persists to Google Cloud Storage and does not require a database.
 
 ## User interface
 ![user_interface](https://user-images.githubusercontent.com/109988/41559986-ba63e4a0-7313-11e8-9200-381512097225.png)
@@ -14,7 +9,7 @@
 ## Getting Started
 #### Install requirements
 
-`replay-ap` requires a running redis instance. Install with homebrew (development on a Mac) or via apt-get (production use on an Ubuntu-based server).
+`replay-ap` requires a running redis instance for storing state (this will probably be refactored away in a future release). Install with homebrew (development on a Mac) or via apt-get (production use on an Ubuntu-based server) or use a cloud-based Redis provider like we do.
 
 `replay-ap` also requires Google Cloud Storage. The authentication for that service is beyond the scope of this document. You can see [this guide](https://cloud.google.com/storage/docs/authentication) for more information.
 
