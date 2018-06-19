@@ -5,7 +5,7 @@ import redis
 ##
 ## Basic app settings
 ##
-DEBUG = False
+DEBUG = True
 HOST = '0.0.0.0'
 ADM_PORT = 8000
 PUB_PORT = 8001
@@ -29,7 +29,7 @@ RATELIMITED_STRING = """
 ##
 ## Bucket auth for persisting recorded files and reading files.
 ##
-STORAGE_BUCKET = os.environ.get('REPLAY_AP_BUCKET', 'int.nyt.com')
+STORAGE_BUCKET = os.environ.get('REPLAY_AP_BUCKET', 'int.stg.nyt.com')
 BASE_DIR = os.environ.get('REPLAY_AP_BASE_DIR', 'apps/replay-ap')
 
 ##

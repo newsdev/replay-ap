@@ -149,14 +149,16 @@ def status(racedate):
     errormode = utils.to_bool(r_conn.get(election_key + '_ERRORMODE'))
     ratelimited = utils.to_bool(r_conn.get(election_key + '_RATELIMITED'))
 
-    return json.dumps({
+    resp = make_response(json.dumps({
                 'playback': playback,
                 'position': position,
                 'errormode': errormode,
                 'ratelimited': ratelimited,
                 'file': hopper[position-1][0],
                 'level': LEVEL
-            })
+            }), 200)
+    resp.headers['Content-Type'] = "application/json; charset=utf-8"
+    return resp
 
 @app.route('/elections/<racedate>')
 def replay(racedate):
