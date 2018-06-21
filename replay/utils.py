@@ -9,6 +9,8 @@ from google.cloud import storage
 from google.oauth2 import service_account
 import googleapiclient.discovery
 
+from replay import to_bool
+
 settings = importlib.import_module('config.%s.settings' % os.environ.get('DEPLOYMENT_ENVIRONMENT', 'dev'))
 
 r_conn = settings.REDIS_CONNECTION
@@ -21,12 +23,8 @@ def build_context():
     context['ADM_URL'] = settings.ADM_URL
     context['PUB_URL'] = settings.PUB_URL
     context['STORAGE_BUCKET'] = settings.STORAGE_BUCKET
+    context['SINGLE_APP'] = settings.SINGLE_APP
     return dict(context)
-
-def to_bool(v):
-    if not v:
-        return False
-    return v.lower() in (b"yes", b"true", b"t", b"1")
 
 def get_bucket():
     client = storage.Client()
@@ -137,23 +135,24 @@ def is_elec(e, file_path):
         pass
     return False
 
-def make_ap_response(response_string):
-    AP_HEADERS = {
-        "cache-control": "private",
-        "Connection": "keep-alive",
-        "Content-Type": "text/html; charset=utf-8",
-        "Date": "Mon, 18 Jun 2018 19:03:47 GMT",
-        "etag": "6c67e990bf8e68fd922b047c13776625-20180618162409387-JSON",
-        "last-modified": "Mon, 18 Jun 2018 16:24:09 GMT",
-        "Server": "Microsoft-IIS/7.5",
-        "x-Apigee-CHT": "false",
-        "x-apigee-Q-Used": "5/10",
-        "x-apigee-Sid": "20180618190347.657Zrmp-xxxxxxxxxxxxx-x-xx",
-        "x-aspnet-version": "4.0.30319",
-        "x-powered-by": "ASP.NET",
-    }
+def make_ap_response(response_string, headers=None):
+    if not headers:
+        headers = {
+                "cache-control": "private",
+                "Connection": "keep-alive",
+                "Content-Type": "text/html; charset=utf-8",
+                "Date": "Mon, 18 Jun 2018 19:03:47 GMT",
+                "etag": "6c67e990bf8e68fd922b047c13776625-20180618162409387-JSON",
+                "last-modified": "Mon, 18 Jun 2018 16:24:09 GMT",
+                "Server": "Microsoft-IIS/7.5",
+                "x-Apigee-CHT": "false",
+                "x-apigee-Q-Used": "5/10",
+                "x-apigee-Sid": "20180618190347.657Zrmp-xxxxxxxxxxxxx-x-xx",
+                "x-aspnet-version": "4.0.30319",
+                "x-powered-by": "ASP.NET",
+            }
     r = make_response(response_string)
-    for k,v in AP_HEADERS.items():
+    for k,v in headers.items():
         r.headers[k] = v
     return r
 
@@ -280,10 +279,10 @@ def get_replay_file(racedate):
         return json.dumps({"success": True})
     else:
         if ratelimited:
-            return make_ap_response((RATELIMITED_STRING, 403, settings.RATELIMITED_HEADERS))
+            return make_ap_response(settings.RATELIMITED_STRING, headers=settings.RATELIMITED_HEADERS)
 
         if errormode:
-            return make_ap_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
+            return make_ap_response(json.dumps({"status": 500, "error": True}), headers=settings.ERRORMODE_HEADERS)
 
     if position + playback < (len(hopper) - 1):
         """
