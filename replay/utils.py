@@ -30,12 +30,20 @@ def get_bucket():
     client = storage.Client()
     return client.get_bucket(settings.STORAGE_BUCKET)
 
-def get_completed_recordings(bucket):
-    return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url]
+def get_completed_recordings(bucket, national=True):
+    if national:
+        return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'national' in b.public_url]
+    else:
+        return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'local' in b.public_url]
 
-def get_racedates(bucket):
-    recordings = [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" in b.public_url]
-    return sorted(list(set([b.public_url.split(settings.BASE_DIR)[1].split('/national')[0].replace('/', '') for b in recordings])), key=lambda x:x)
+def get_racedates(bucket, national=True):
+    if national:
+        recordings = [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" in b.public_url and 'national' in b.public_url]
+        r = list(set([b.public_url.split(settings.BASE_DIR)[1].split('/national')[0].replace('/', '') for b in recordings]))
+    else:
+        recordings = [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" in b.public_url and 'local' in b.public_url]
+        r = list(set([b.public_url.split(settings.BASE_DIR)[1].split('/local')[0].replace('/', '') for b in recordings]))    
+    return sorted(r, key=lambda x:x)
 
 def stop_recording(racedate):
     process = subprocess.Popen([
@@ -99,7 +107,7 @@ def is_current(racedate):
     Between today and 21 days from today.
     """
     today = datetime.datetime.now()
-    future = today + datetime.timedelta(21)
+    future = today + datetime.timedelta(40)
     today = today.strftime('%Y-%m-%d')
     future = future.strftime('%Y-%m-%d')
 
@@ -126,15 +134,6 @@ def is_future(racedate):
         return True
     return False
 
-def is_elec(e, file_path):
-    try:
-        file_path = file_path.split('/national/')[1]
-        if e in file_path:
-            return True
-    except:
-        pass
-    return False
-
 def make_ap_response(response_string, headers=None):
     if not headers:
         headers = {
@@ -156,7 +155,7 @@ def make_ap_response(response_string, headers=None):
         r.headers[k] = v
     return r
 
-def get_replay_file(racedate):
+def get_replay_file(racedate, national=True):
     """
     The route `/<racedate>` will replay the election files found in the folder
     `/<DATA_DIR>/<racedate>/`. The files should be named such that the first file
@@ -198,36 +197,17 @@ def get_replay_file(racedate):
     and playback speeds, respectively.
     """
 
-    LEVEL = 'national'
-    if request.args.get('national', None):
-        if request.args['national'].lower() == 'false':
-            LEVEL = 'local'
-
-    ## UGH I AM GONNA HAVE TO REIMPLEMENT THIS IN NOVEMBER.
-    ## UGH UGH UGH UGH
-    #
-    # if request.args.get('national', None) and request.args.get('level', None):
-    #     LEVEL = 'local'
-    #     if request.args['national'].lower() == 'true':
-    #         LEVEL = 'national'
-    #     if request.args['level'] == 'district':
-    #         LEVEL = 'districts'
-    # else:
-    #     return json.dumps({
-    #         'error': True,
-    #         'message': 'must specify national=true or national=false and level=ru or level=district'
-    #     })
-
     election_key = 'REPLAY_AP_%s' % racedate
 
     bucket = get_bucket()
-    completed_recordings = get_completed_recordings(bucket)
+    completed_recordings = get_completed_recordings(bucket, national=national)
+
     if len(completed_recordings) == 0:
         return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
 
     sd = datetime.datetime.now() + datetime.timedelta(0, 60)
 
-    hopper = sorted([(b.public_url, b) for b in completed_recordings if is_elec(racedate, b.public_url.split(settings.BASE_DIR)[1])], key=lambda x:x[0])        
+    hopper = sorted([(b.public_url, b) for b in completed_recordings], key=lambda x:x[0])        
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)

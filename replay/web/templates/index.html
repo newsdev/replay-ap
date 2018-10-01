@@ -12,6 +12,10 @@
         font-style: italic;
         font-weight: normal;
     }
+    span.smallgray a {
+        color: #666;
+        font-size: 11px;
+    }
 </style>
 <div class="row">
     <div class="col-md-12">
@@ -39,8 +43,7 @@
         {% for e in current %}
         <tr id="election-{{ e.racedate }}">
             <td class="col-md-2">
-                <a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>&nbsp;
-                <a target="_blank" style="color: #888;font-size:11px;" href="https://console.cloud.google.com/storage/browser/{{ STORAGE_BUCKET }}/apps/replay-ap/{{ e.racedate }}/national?project=nytint-prd"><em>see files &raquo;</em></a>
+                <a target="_blank" href="https://console.cloud.google.com/storage/browser/{{ STORAGE_BUCKET }}/apps/replay-ap/{{ e.racedate }}/?project=nytint-prd">{{ e.racedate }}</a>&nbsp;<span class="smallgray"><a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national=true&level=ru">nat &raquo;</a> <a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national=false&level=ru">loc &raquo;</a></span>
             </td>
             <td class="status">
                 <a target="_blank" href="/elections/{{ e.racedate }}/status">status.json</a>&nbsp;
@@ -85,10 +88,9 @@
         </tr>
         {% for e in past %}
         <tr id="election-{{ e.racedate }}">
-            <td class="col-md-2">
-                <a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">{{ e.racedate }}</a>
-                <a target="_blank" style="color: #888;font-size:11px;" href="https://console.cloud.google.com/storage/browser/int.nyt.com/apps/replay-ap/{{ e.racedate }}/national?project=nytint-prd"><em>see files &raquo;</em></a>
-            </td>
+                <td class="col-md-2">
+                        <a target="_blank" href="https://console.cloud.google.com/storage/browser/{{ STORAGE_BUCKET }}/apps/replay-ap/{{ e.racedate }}/?project=nytint-prd">{{ e.racedate }}</a>&nbsp;<span class="smallgray"><a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national=true&level=ru">nat &raquo;</a> <a target="_blank" href="{{ PUB_URL }}/elections/{{ e.racedate }}?national=false&level=ru">loc &raquo;</a></span>
+                    </td>
             <td class="position">
                 <strong>{{ e.position }}</strong>&nbsp;/&nbsp;{{ e.total_positions }}&nbsp;
                 <a class="ajax" id="position-zero" href="/elections/{{ e.racedate }}?national={{ e.national|lower }}&level=ru">&#x21BA;</a>

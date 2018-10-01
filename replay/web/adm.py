@@ -42,7 +42,7 @@ def index():
 
     for e in elections:
         for level in ['national']:
-            positions = [b.public_url.split(settings.BASE_DIR)[1] for b in completed_recordings if utils.is_elec(e, b.public_url.split(settings.BASE_DIR)[1])]
+            positions = [b.public_url.split(settings.BASE_DIR)[1] for b in completed_recordings]
             national = True
             e_dict = {}
             election_key = 'REPLAY_AP_%s' % e
@@ -142,7 +142,7 @@ def status(racedate):
 
     sd = datetime.datetime.now() + datetime.timedelta(0, 60)
 
-    hopper = sorted([(b.public_url, b) for b in completed_recordings if utils.is_elec(racedate, b.public_url.split(settings.BASE_DIR)[1])], key=lambda x:x[0])        
+    hopper = sorted([(b.public_url, b) for b in completed_recordings], key=lambda x:x[0])        
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)
@@ -162,7 +162,13 @@ def status(racedate):
 
 @app.route('/elections/<racedate>')
 def replay(racedate):
-    return utils.get_replay_file(racedate)
+    national = True
+    if request.args.get('national', None):
+        if request.args['national'].lower() == 'false':
+            national = False
+
+    print(national)
+    return utils.get_replay_file(racedate, national=national)
 
 if __name__ == '__main__':
     app.run(host=settings.HOST, port=settings.ADM_PORT, debug=settings.DEBUG)
