@@ -27,7 +27,7 @@ def health():
 def index():
     bucket = utils.get_bucket()
 
-    completed_recordings = utils.get_completed_recordings(bucket)
+    completed_recordings = utils.get_completed_recordings(bucket, racedate='-')
     elections = utils.get_racedates(bucket)
     active_recordings, err = utils.get_active_recordings()
 
@@ -41,32 +41,30 @@ def index():
     context['future'] = []
 
     for e in elections:
-        for level in ['national']:
-            positions = [b.public_url.split(settings.BASE_DIR)[1] for b in completed_recordings]
-            national = True
-            e_dict = {}
-            election_key = 'REPLAY_AP_%s' % e
-            e_dict['status'] = False
-            if "record-ap-%s" % e in active_recordings:
-                e_dict['status'] = True
-            e_dict['racedate'] = e
-            e_dict['national'] = national
-            e_dict['level'] = level
-            e_dict['title'] = "%s [%s]" % (e, level)
-            e_dict['position'] = int(r_conn.get(election_key + '_POSITION') or 0)
-            e_dict['total_positions'] = len(positions)
-            e_dict['playback'] = int(r_conn.get(election_key + '_PLAYBACK') or 1)
-            e_dict['errormode'] = utils.to_bool(r_conn.get(election_key + '_ERRORMODE'))
-            e_dict['ratelimited'] = utils.to_bool(r_conn.get(election_key + '_RATELIMITED'))
+        positions = [b.public_url.split(settings.BASE_DIR)[1] for b in completed_recordings if e in b.public_url]
+        print(positions)
+        national = True
+        e_dict = {}
+        election_key = 'REPLAY_AP_%s' % e
+        e_dict['status'] = False
+        if "record-ap-%s" % e in active_recordings:
+            e_dict['status'] = True
+        e_dict['racedate'] = e
+        e_dict['national'] = national
+        e_dict['position'] = int(r_conn.get(election_key + '_POSITION') or 0)
+        e_dict['total_positions'] = len(positions)
+        e_dict['playback'] = int(r_conn.get(election_key + '_PLAYBACK') or 1)
+        e_dict['errormode'] = utils.to_bool(r_conn.get(election_key + '_ERRORMODE'))
+        e_dict['ratelimited'] = utils.to_bool(r_conn.get(election_key + '_RATELIMITED'))
 
-            if utils.is_current(e):
-                context['current'].append(e_dict)
+        if utils.is_current(e):
+            context['current'].append(e_dict)
 
-            elif utils.is_future(e):
-                context['future'].append(e_dict)
+        elif utils.is_future(e):
+            context['future'].append(e_dict)
 
-            else:
-                context['past'].append(e_dict)
+        else:
+            context['past'].append(e_dict)
 
     context['past'] = sorted(context['past'], key=lambda x:x['racedate'], reverse=True)
 
@@ -136,7 +134,7 @@ def status(racedate):
     election_key = 'REPLAY_AP_%s' % racedate
 
     bucket = utils.get_bucket()
-    completed_recordings = utils.get_completed_recordings(bucket)
+    completed_recordings = utils.get_completed_recordings(bucket, racedate)
     if len(completed_recordings) == 0:
         return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
 

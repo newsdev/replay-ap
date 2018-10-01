@@ -30,11 +30,11 @@ def get_bucket():
     client = storage.Client()
     return client.get_bucket(settings.STORAGE_BUCKET)
 
-def get_completed_recordings(bucket, national=True):
+def get_completed_recordings(bucket, racedate, national=True):
     if national:
-        return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'national' in b.public_url]
+        return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'national' in b.public_url and racedate in b.public_url]
     else:
-        return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'local' in b.public_url]
+        return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'local' in b.public_url and racedate in b.public_url]
 
 def get_racedates(bucket, national=True):
     if national:
@@ -200,14 +200,14 @@ def get_replay_file(racedate, national=True):
     election_key = 'REPLAY_AP_%s' % racedate
 
     bucket = get_bucket()
-    completed_recordings = get_completed_recordings(bucket, national=national)
+    completed_recordings = get_completed_recordings(bucket, racedate, national=national)
 
     if len(completed_recordings) == 0:
         return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
 
     sd = datetime.datetime.now() + datetime.timedelta(0, 60)
 
-    hopper = sorted([(b.public_url, b) for b in completed_recordings], key=lambda x:x[0])        
+    hopper = sorted([(b.public_url, b) for b in completed_recordings if racedate in b.public_url], key=lambda x:x[0])        
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)
