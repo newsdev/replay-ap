@@ -165,7 +165,6 @@ def replay(racedate):
         if request.args['national'].lower() == 'false':
             national = False
 
-    print(national)
     return utils.get_replay_file(racedate, national=national)
 
 if __name__ == '__main__':
