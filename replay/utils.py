@@ -55,7 +55,7 @@ def stop_recording(racedate):
 
 def start_recording(racedate):
     env = os.environ.copy()
-    env['REPLAY_AP_BASE_PATH'] = "%s/%s/national" % (settings.BASE_DIR, racedate)
+    env['REPLAY_AP_BASE_PATH'] = "%s/%s/" % (settings.BASE_DIR, racedate)
     process = subprocess.Popen([
         "pm2", "start", 
         "replay/record.sh", "--name", "record-ap-%s" % racedate, 

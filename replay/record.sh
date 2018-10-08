@@ -31,7 +31,7 @@ fi
 
 function get_results {
   curl --compressed -f -o $DATA_DIR/$RACEDATE/national/$RACEDATE-national-$TIMESTAMP.json $AP_API_BASE_URL"/elections/$RACEDATE?apiKey=$AP_API_KEY&format=json&level=ru&test=true&national=true" & p1=$!
-  curl --compressed -f -o $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json $AP_API_BASE_URL"/elections/$RACEDATE?apiKey=$AP_API_KEY&format=json&level=ru&test=true&local=true" &p2=$!
+  curl --compressed -f -o $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json $AP_API_BASE_URL"/elections/$RACEDATE?apiKey=$AP_API_KEY&format=json&level=ru&test=true&local=true" & p2=$!
 
   wait $p1 && wait $p2
 
