@@ -18,7 +18,7 @@ if [[ -z $REPLAY_AP_BUCKET ]] ; then
 fi
 
 if [[ -z $REPLAY_AP_BASE_PATH ]] ; then
-    REPLAY_AP_BASE_PATH="apps/replay-ap/$RACEDATE/"
+    REPLAY_AP_BASE_PATH="apps/replay-ap/$RACEDATE"
 fi
 
 if [[ -z $ELEX_LOADER_TIMEOUT ]] ; then
@@ -35,8 +35,8 @@ function get_results {
 
   wait $p1 && wait $p2
 
-  gsutil cp $DATA_DIR/$RACEDATE/national/$RACEDATE-national-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/national & u1=$!
-  gsutil cp $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/local & u2=$!
+  gsutil cp $DATA_DIR/$RACEDATE/national/$RACEDATE-national-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/national/$RACEDATE-national-$TIMESTAMP.json & u1=$!
+  gsutil cp $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/local/$RACEDATE-local-$TIMESTAMP.json & u2=$!
 
   wait $u1 && wait $u2
 
