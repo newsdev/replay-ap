@@ -31,12 +31,12 @@ fi
 
 function get_results {
   curl --compressed -f -o $DATA_DIR/$RACEDATE/national/$RACEDATE-national-$TIMESTAMP.json $AP_API_BASE_URL"/elections/$RACEDATE?apiKey=$AP_API_KEY&format=json&level=ru&test=true&national=true" & p1=$!
-  curl --compressed -f -o $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json $AP_API_BASE_URL"/elections/$RACEDATE?apiKey=$AP_API_KEY&format=json&level=ru&test=true&local=true" & p2=$!
+  curl --compressed -f -o $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json $AP_API_BASE_URL"/elections/$RACEDATE?apiKey=$AP_API_KEY&format=json&level=ru&test=true&national=false" & p2=$!
 
   wait $p1 && wait $p2
 
-  gsutil cp $DATA_DIR/$RACEDATE/national/$RACEDATE-national-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/national/ & u1=$!
-  gsutil cp $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/local/ & u2=$!
+  gsutil cp $DATA_DIR/$RACEDATE/national/$RACEDATE-national-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/national & u1=$!
+  gsutil cp $DATA_DIR/$RACEDATE/local/$RACEDATE-local-$TIMESTAMP.json gs://$REPLAY_AP_BUCKET/$REPLAY_AP_BASE_PATH/local & u2=$!
 
   wait $u1 && wait $u2
 
