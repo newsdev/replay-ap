@@ -31,6 +31,7 @@ def get_bucket():
     return client.get_bucket(settings.STORAGE_BUCKET)
 
 def get_completed_recordings(bucket, racedate, national=True):
+    print("get_completed_recordings: national=%s" national)
     if national:
         return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'national' in b.public_url and racedate in b.public_url]
     else:
@@ -200,6 +201,10 @@ def get_replay_file(racedate, national=True):
     election_key = 'REPLAY_AP_%s' % racedate
 
     bucket = get_bucket()
+
+    print("get_replay_file: national=%s" national)
+    print(completed_recordings)
+
     completed_recordings = get_completed_recordings(bucket, racedate, national=national)
 
     if len(completed_recordings) == 0:
