@@ -133,6 +133,9 @@ def status(racedate):
 
     election_key = 'REPLAY_AP_%s' % racedate
 
+    if request.args.get('user', None):
+        election_key = "%s_" % request.args['user']
+
     bucket = utils.get_bucket()
     completed_recordings = utils.get_completed_recordings(bucket, racedate)
     if len(completed_recordings) == 0:

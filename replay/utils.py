@@ -200,12 +200,12 @@ def get_replay_file(racedate, national=True):
 
     election_key = 'REPLAY_AP_%s' % racedate
 
+    if request.args.get('user', None):
+        election_key = "%s_" % request.args['user']
+
     bucket = get_bucket()
 
-    print("get_replay_file: national=%s" % national)
-
     completed_recordings = get_completed_recordings(bucket, racedate, national=national)
-    print(completed_recordings)
 
     if len(completed_recordings) == 0:
         return make_response(json.dumps({"status": 500, "error": True}), 500, settings.ERRORMODE_HEADERS)
