@@ -31,7 +31,6 @@ def get_bucket():
     return client.get_bucket(settings.STORAGE_BUCKET)
 
 def get_completed_recordings(bucket, racedate, national=True):
-    print("get_completed_recordings: national=%s" % national)
     if national:
         return [b for b in bucket.list_blobs(prefix=settings.BASE_DIR) if "__placeholder__" not in b.public_url and 'national' in b.public_url and racedate in b.public_url]
     else:
@@ -156,7 +155,7 @@ def make_ap_response(response_string, headers=None):
         r.headers[k] = v
     return r
 
-def get_replay_file(racedate, national=True):
+def get_replay_file(racedate, national=True, user='staging'):
     """
     The route `/<racedate>` will replay the election files found in the folder
     `/<DATA_DIR>/<racedate>/`. The files should be named such that the first file
@@ -197,11 +196,7 @@ def get_replay_file(racedate, national=True):
     Requesting /<racedate>?position=0&playback=1 will reset to the default position
     and playback speeds, respectively.
     """
-
-    election_key = 'REPLAY_AP_%s' % racedate
-
-    if request.args.get('user', None):
-        election_key = "%s_" % request.args['user']
+    election_key = '%s_REPLAY_AP_%s' % (user, racedate)
 
     bucket = get_bucket()
 
@@ -216,49 +211,8 @@ def get_replay_file(racedate, national=True):
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)
-
     errormode = to_bool(r_conn.get(election_key + '_ERRORMODE'))
     ratelimited = to_bool(r_conn.get(election_key + '_RATELIMITED'))
-
-    if request.args.get('errormode', None):
-        if request.args.get('errormode', None) == 'true':
-            r_conn.set(election_key + '_ERRORMODE', 'True')
-            errormode = True
-
-        if request.args.get('errormode', None) == 'false':
-            r_conn.set(election_key + '_ERRORMODE', 'False')
-            errormode = False
-
-    if request.args.get('ratelimited', None):
-        if request.args.get('ratelimited', None) == 'true':
-            r_conn.set(election_key + '_RATELIMITED', 'True')
-            ratelimited = True
-
-        if request.args.get('ratelimited', None) == 'false':
-            r_conn.set(election_key + '_RATELIMITED', 'False')
-            ratelimited = False
-
-    if request.args.get('playback', None):
-        try:
-            playback = abs(int(request.args.get('playback', None)))
-        except ValueError:
-            return json.dumps({
-                    'error': True,
-                    'error_type': 'ValueError',
-                    'message': 'playback must be an integer greater than 0.'
-                })
-
-    if request.args.get('position', None):
-        try:
-            position = abs(int(request.args.get('position', None)))
-        except ValueError:
-            return json.dumps({
-                    'error': True,
-                    'error_type': 'ValueError',
-                    'message': 'position must be an integer greater than 0.'
-                })
-
-    r_conn.set(election_key + '_PLAYBACK', str(playback))
 
     if request.args.get('ratelimited', None) or request.args.get('errormode', None):
         return json.dumps({"success": True})

@@ -25,6 +25,8 @@ def health():
 
 @app.route('/', methods=['GET'])
 def index():
+    user = request.args.get('user', 'staging')        
+
     bucket = utils.get_bucket()
 
     completed_recordings = utils.get_completed_recordings(bucket, racedate='-')
@@ -35,6 +37,8 @@ def index():
         active_recordings = [a['name'] for a in active_recordings]
 
     context = utils.build_context()
+    context['user'] = user
+    context['available_users'] = list(set([k.decode('utf-8').split('_REPLAY_AP')[0] for k in r_conn.keys(pattern="*_REPLAY_AP_*_POSITION")]))
 
     context['past'] = []
     context['current'] = []
@@ -42,10 +46,9 @@ def index():
 
     for e in elections:
         positions = [b.public_url.split(settings.BASE_DIR)[1] for b in completed_recordings if e in b.public_url]
-        print(positions)
         national = True
         e_dict = {}
-        election_key = 'REPLAY_AP_%s' % e
+        election_key = '%s_REPLAY_AP_%s' % (user, e)
         e_dict['status'] = False
         if "record-ap-%s" % e in active_recordings:
             e_dict['status'] = True
@@ -74,6 +77,47 @@ def index():
 def recording(racedate, action):
     message = "Something bad happened that didn't trigger either start/stop action."
     success = False
+
+    user = request.args.get('user', 'staging')        
+
+    if action == "position":
+        election_key = '%s_REPLAY_AP_%s' % (user, racedate)
+        if request.args.get('errormode', None):
+            if request.args.get('errormode', None) == 'true':
+                r_conn.set(election_key + '_ERRORMODE', 'True')
+
+            if request.args.get('errormode', None) == 'false':
+                r_conn.set(election_key + '_ERRORMODE', 'False')
+
+        if request.args.get('ratelimited', None):
+            if request.args.get('ratelimited', None) == 'true':
+                r_conn.set(election_key + '_RATELIMITED', 'True')
+
+            if request.args.get('ratelimited', None) == 'false':
+                r_conn.set(election_key + '_RATELIMITED', 'False')
+
+        if request.args.get('playback', None):
+            try:
+                playback = abs(int(request.args.get('playback', None)))
+            except ValueError:
+                return json.dumps({
+                        'error': True,
+                        'error_type': 'ValueError',
+                        'message': 'playback must be an integer greater than 0.'
+                    })
+            r_conn.set(election_key + '_PLAYBACK', str(playback))
+
+        if request.args.get('position', None):
+            try:
+                position = abs(int(request.args.get('position', None)))
+            except ValueError:
+                return json.dumps({
+                        'error': True,
+                        'error_type': 'ValueError',
+                        'message': 'position must be an integer greater than 0.'
+                    })
+            r_conn.set(election_key + '_POSITION', str(position))
+        message = "Set position or playback."
 
     if action == "start":
         active, err = utils.get_active_recordings()
@@ -125,16 +169,14 @@ def status(racedate):
     playback speed, and the path of the file that will be served at the current
     position.
     """
+    user = request.args.get('user', 'staging')        
 
     LEVEL = 'national'
     if request.args.get('national', None):
         if request.args['national'].lower() == 'false':
             LEVEL = 'local'
 
-    election_key = 'REPLAY_AP_%s' % racedate
-
-    if request.args.get('user', None):
-        election_key = "%s_" % request.args['user']
+    election_key = '%s_REPLAY_AP_%s' % (user, racedate)
 
     bucket = utils.get_bucket()
     completed_recordings = utils.get_completed_recordings(bucket, racedate)
@@ -156,19 +198,20 @@ def status(racedate):
                 'errormode': errormode,
                 'ratelimited': ratelimited,
                 'file': hopper[position-1][0],
-                'level': LEVEL
+                'level': LEVEL,
+                'user': user
             }), 200)
     resp.headers['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
 @app.route('/elections/<racedate>')
 def replay(racedate):
+    user = request.args.get('user', 'staging')        
     national = True
     if request.args.get('national', None):
         if request.args['national'].lower() == 'false':
             national = False
-    print("replay adm: national=%s" % national)
-    return utils.get_replay_file(racedate, national=national)
+    return utils.get_replay_file(racedate, national=national, user=user)
 
 if __name__ == '__main__':
     app.run(host=settings.HOST, port=settings.ADM_PORT, debug=settings.DEBUG)
