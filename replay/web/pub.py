@@ -29,11 +29,11 @@ def index():
 
 @app.route('/elections/<racedate>')
 def replay(racedate):
+    user = request.args.get('user', 'staging')
     national = True
     if request.args.get('national', None):
         if request.args['national'].lower() == 'false':
             national = False
-    print("replay pub: national=%s" % national)
     return utils.get_replay_file(racedate, national=national)
 
 if __name__ == '__main__':
