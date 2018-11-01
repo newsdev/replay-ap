@@ -169,7 +169,7 @@ def status(racedate):
     playback speed, and the path of the file that will be served at the current
     position.
     """
-    user = request.args.get('user', 'staging')        
+    user = request.args.get('user', 'staging')
 
     LEVEL = 'national'
     if request.args.get('national', None):
@@ -185,7 +185,8 @@ def status(racedate):
 
     sd = datetime.datetime.now() + datetime.timedelta(0, 60)
 
-    hopper = sorted([(b.public_url, b) for b in completed_recordings], key=lambda x:x[0])        
+    hopper = sorted([(b.public_url, b) for b in completed_recordings], key=lambda x:x[0])
+    print(hopper)
 
     position = int(r_conn.get(election_key + '_POSITION') or 0)
     playback = int(r_conn.get(election_key + '_PLAYBACK') or 1)
@@ -197,7 +198,7 @@ def status(racedate):
                 'position': position,
                 'errormode': errormode,
                 'ratelimited': ratelimited,
-                'file': hopper[position-1][0],
+                'file': hopper[position][0],
                 'level': LEVEL,
                 'user': user
             }), 200)

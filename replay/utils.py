@@ -236,6 +236,6 @@ def get_replay_file(racedate, national=True, user='staging'):
     else:
         r_conn.set(election_key + '_POSITION', str(len(hopper)))
 
-    recording = hopper[position - 1]
+    recording = hopper[position]
     r = recording[1].download_as_string() 
     return make_ap_response(r)
