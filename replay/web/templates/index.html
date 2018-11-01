@@ -124,7 +124,7 @@
                 <a class="ajax" id="position-50" href="/recording/{{ e.racedate }}/position/?user={{ user }}&national={{ national }}&level=ru" data-positions="{{ e.total_positions }}">50%</a> &bull;
                 <a class="ajax" id="position-75" href="/recording/{{ e.racedate }}/position/?user={{ user }}&national={{ national }}&level=ru" data-positions="{{ e.total_positions }}">75%</a> &bull;
                 <a class="ajax" id="position-90" href="/recording/{{ e.racedate }}/position/?user={{ user }}&national={{ national }}&level=ru" data-positions="{{ e.total_positions }}">90%</a> &bull;
-                <a class="ajax" id="position-end" href="/recording/{{ e.racedate }}/position/?user={{ user }}&national={{ national }}&level=ru" data-positions="{{ e.total_positions }}">end</a>
+                <a class="ajax" id="position-100" href="/recording/{{ e.racedate }}/position/?user={{ user }}&national={{ national }}&level=ru" data-positions="{{ e.total_positions }}">end</a>
             </td>
             <td class="playback">
                 <strong>{{ e.playback }}</strong>&nbsp;
@@ -190,7 +190,7 @@
             if (direction == "90") {
                 params[param_name] = Math.round(positions * 0.90);
             };
-            if (direction == "end") {
+            if (direction == "100") {
                 params[param_name] = positions;
             };
             $.ajax({
